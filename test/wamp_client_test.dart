@@ -1,0 +1,12 @@
+import 'package:wamp_client/wamp_client.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group('A group of tests', () {
+    setUp(() {});
+
+    test('First Test', () {
+      expect(true, isTrue);
+    });
+  });
+}
