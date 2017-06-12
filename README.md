@@ -8,7 +8,7 @@ A simple usage example:
 
     import 'package:wamp_client/wamp_client.dart';
 
-    main() {
+    main() async {
       var wamp = new WampClient('your.realm1')
         ..onConnect = (c) {
           c.subscribe('your.topic').then((sub) async {
