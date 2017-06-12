@@ -297,7 +297,18 @@ class WampClient {
           _inflights.remove(code);
           cntl.add(regid);
           cntl.close();
-          print('reg ok $regid');
+        } else {
+          print('unknown registered: $msg');
+        }
+        break;
+
+      case WampCode.unregistered:
+        final code = msg[1] as int;
+        final cntl = _inflights[code];
+        if (cntl != null) {
+          _inflights.remove(code);
+          cntl.add(null);
+          cntl.close();
         } else {
           print('unknown registered: $msg');
         }
@@ -349,6 +360,19 @@ class WampClient {
             }
             break;
 
+          case WampCode.unregister:
+            final code = msg[2] as int;
+            final cntl = _inflights[code];
+            if (cntl != null) {
+              _inflights.remove(code);
+              final args = msg[4] as String;
+              cntl.addError(new WampArgs(<dynamic>[args]));
+              cntl.close();
+            } else {
+              print('unknown unregister error: $msg');
+            }
+            break;
+
           default:
             print('unimplemented error: $msg');
         }
@@ -360,7 +384,6 @@ class WampClient {
       case WampCode.call:
       case WampCode.register:
       case WampCode.unregister:
-      case WampCode.unregistered:
       case WampCode.yield:
         if (_sessionState == #shutting_down) {
           // ignore.
@@ -486,6 +509,19 @@ class WampClient {
     });
   }
 
+  /// unregister RPC [id].
+  ///
+  ///     wamp.unregister(your_rpc_id);
+  Future<Null> unregister(WampRegistration reg) {
+    final cntl = new StreamController<int>();
+    final code = _flightCode(cntl);
+    _ws.add(JSON.encode([WampCode.unregister, code, reg.id]));
+    return cntl.stream.last.then((dynamic _) {
+      _registrations.remove(reg.id);
+      return null;
+    });
+  }
+
   /// call RPC with [args] and [params].
   ///
   ///     wamp.call('your.rpc.name', ['myarg', 3], {'hello': 'world'})
@@ -532,7 +568,7 @@ class WampClient {
   /// publish [topic].
   ///
   ///     wamp.publish('topic');
-  Future publish(
+  Future<Null> publish(
     String topic, [
     List<dynamic> args = const <dynamic>[],
     Map<String, dynamic> params = const <String, dynamic>{},

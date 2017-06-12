@@ -16,14 +16,16 @@ Future main() async {
         print('published');
       });
 
-      final pname = 'proc.15';
+      final pname = 'proc.17';
 
       c.register(pname, (a) {
         print('proc arg: $a');
         throw new WampArgs(<dynamic>[100], <String, dynamic>{'test': true});
         return a;
-      }).then((dynamic _) {
-        print('register ok');
+      }).then((WampRegistration regid) async {
+        print('register ok $regid');
+        await c.unregister(regid);
+        print('unregister ok');
       }).catchError((dynamic e) {
         print('register error $e');
       });
