@@ -94,6 +94,8 @@ class _Subscription {
 class WampRegistration {
   final int id;
   const WampRegistration(this.id);
+
+  String toString() => 'WampRegistration(id: $id)';
 }
 
 /// onConnect handler type.
