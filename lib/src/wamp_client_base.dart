@@ -51,13 +51,9 @@ class WampArgs {
             : (const <String, dynamic>{}));
   }
 
-  List toJson() {
-    return <dynamic>[args, params];
-  }
+  List toJson() => <dynamic>[args, params];
 
-  String toString() {
-    return JSON.encode(this);
-  }
+  String toString() => JSON.encode(this);
 }
 
 /// WAMP RPC procedure type.
@@ -71,17 +67,13 @@ class WampEvent {
 
   const WampEvent(this.id, this.details, this.args);
 
-  Map toJson() {
-    return new Map<String, dynamic>()
-      ..['id'] = id
-      ..['details'] = details
-      ..['args'] = args.args
-      ..['params'] = args.params;
-  }
+  Map toJson() => new Map<String, dynamic>()
+    ..['id'] = id
+    ..['details'] = details
+    ..['args'] = args.args
+    ..['params'] = args.params;
 
-  String toString() {
-    return JSON.encode(this);
-  }
+  String toString() => JSON.encode(this);
 }
 
 class _Subscription {
