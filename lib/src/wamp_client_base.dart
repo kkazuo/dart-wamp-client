@@ -266,7 +266,6 @@ class WampClient {
 
       case WampCode.published:
         final code = msg[1] as int;
-        final pubid = msg[2] as int;
         final cntl = _inflights[code];
         if (cntl != null) {
           _inflights.remove(code);
