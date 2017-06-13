@@ -509,8 +509,7 @@ class WampClient {
   Future<WampRegistration> register(String uri, WampProcedure proc,
       [Map options = const <String, dynamic>{}]) {
     final cntl = new StreamController<int>();
-    final code = _flightCode(cntl);
-    _ws.add(JSON.encode([WampCode.register, code, options, uri]));
+    _goFlight(cntl, (code) => [WampCode.register, code, options, uri]);
     return cntl.stream.last.then((regid) {
       _registrations[regid] = proc;
       return new WampRegistration(regid);
@@ -522,8 +521,7 @@ class WampClient {
   ///     wamp.unregister(your_rpc_id);
   Future<Null> unregister(WampRegistration reg) {
     final cntl = new StreamController<int>();
-    final code = _flightCode(cntl);
-    _ws.add(JSON.encode([WampCode.unregister, code, reg.id]));
+    _goFlight(cntl, (code) => [WampCode.unregister, code, reg.id]);
     return cntl.stream.last.then((dynamic _) {
       _registrations.remove(reg.id);
       return null;
@@ -544,8 +542,8 @@ class WampClient {
       Map<String, dynamic> params = const <String, dynamic>{},
       Map options = const <String, dynamic>{}]) {
     final cntl = new StreamController<WampArgs>();
-    final code = _flightCode(cntl);
-    _ws.add(JSON.encode([WampCode.call, code, options, uri, args, params]));
+    _goFlight(
+        cntl, (code) => [WampCode.call, code, options, uri, args, params]);
     return cntl.stream.last;
   }
 
@@ -559,8 +557,7 @@ class WampClient {
   Future<Stream<WampEvent>> subscribe(String topic,
       [Map options = const <String, dynamic>{}]) {
     final cntl = new StreamController<Stream<WampEvent>>();
-    final code = _flightCode(cntl);
-    _ws.add(JSON.encode([WampCode.subscribe, code, options, topic]));
+    _goFlight(cntl, (code) => [WampCode.subscribe, code, options, topic]);
     return cntl.stream.last;
   }
 
@@ -568,8 +565,7 @@ class WampClient {
     _subscriptions.remove(subid);
 
     final cntl = new StreamController<Null>();
-    final code = _flightCode(cntl);
-    _ws.add(JSON.encode([WampCode.unsubscribe, code, subid]));
+    _goFlight(cntl, (code) => [WampCode.unsubscribe, code, subid]);
     return cntl.stream.last;
   }
 
@@ -583,9 +579,8 @@ class WampClient {
     Map options = const <String, dynamic>{},
   ]) {
     final cntl = new StreamController<Null>();
-    final code = _flightCode(cntl);
-    _ws.add(
-        JSON.encode([WampCode.publish, code, options, topic, args, params]));
+    final code = _goFlight(
+        cntl, (code) => [WampCode.publish, code, options, topic, args, params]);
 
     final dynamic acknowledge = options[_keyAcknowledge];
     if (acknowledge is bool && acknowledge) {
@@ -604,5 +599,16 @@ class WampClient {
 
     _inflights[code] = val;
     return code;
+  }
+
+  int _goFlight(StreamController<dynamic> cntl, dynamic data(int code)) {
+    final code = _flightCode(cntl);
+    try {
+      _ws.add(JSON.encode(data(code)));
+      return code;
+    } catch (_) {
+      _inflights.remove(code);
+      rethrow;
+    }
   }
 }
