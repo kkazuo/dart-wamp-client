@@ -1,6 +1,6 @@
 name: wamp_client
 description: A library for Dart WAMP client.
-version: 0.0.1
+version: 0.1.1
 homepage: https://github.com/kkazuo/dart-wamp-client
 author: Koga Kazuo <obiwanko@me.com>
 

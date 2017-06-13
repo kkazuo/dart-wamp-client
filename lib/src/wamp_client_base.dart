@@ -144,6 +144,15 @@ class WampClient {
   static const Map<String, dynamic> optShouldAcknowledge =
       const <String, dynamic>{_keyAcknowledge: true};
 
+  /// [subscribe] ([register]) should prefix match on topic (url).
+  static const Map<String, dynamic> optPrefixMatching = const <String, dynamic>{
+    'match': 'prefix'
+  };
+
+  /// [subscribe] ([register]) should wildcard match on topic (url).
+  static const Map<String, dynamic> optWildcardMatching =
+      const <String, dynamic>{'match': 'wildcard'};
+
   /// on [connect] handler.
   ///
   ///     void myOnConnect(WampClient wamp) { ... }
