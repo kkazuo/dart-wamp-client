@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Fix for Dart 2.
+
 ## 0.1.1
 
 - Add ```unregister``` method.
