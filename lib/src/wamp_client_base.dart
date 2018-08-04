@@ -53,7 +53,7 @@ class WampArgs {
 
   List toJson() => <dynamic>[args, params];
 
-  String toString() => JSON.encode(this);
+  String toString() => jsonEncode(this);
 }
 
 /// WAMP RPC procedure type.
@@ -73,7 +73,7 @@ class WampEvent {
     ..['args'] = args.args
     ..['params'] = args.params;
 
-  String toString() => JSON.encode(this);
+  String toString() => jsonEncode(this);
 }
 
 class _Subscription {
@@ -169,7 +169,7 @@ class WampClient {
     try {
       await for (final m in _ws) {
         final s = m is String ? m : new Utf8Decoder().convert(m as List<int>);
-        final msg = JSON.decode(s) as List<dynamic>;
+        final msg = jsonDecode(s) as List<dynamic>;
         _handle(msg);
       }
       print('disconnect');
@@ -415,7 +415,7 @@ class WampClient {
     if (proc != null) {
       try {
         final result = proc(args);
-        _ws.add(JSON.encode([
+        _ws.add(jsonEncode([
           WampCode.yield,
           code,
           <String, dynamic>{},
@@ -424,7 +424,7 @@ class WampClient {
         ]));
       } on WampArgs catch (ex) {
         print('ex=$ex');
-        _ws.add(JSON.encode([
+        _ws.add(jsonEncode([
           WampCode.error,
           WampCode.invocation,
           code,
@@ -434,7 +434,7 @@ class WampClient {
           ex.params
         ]));
       } catch (ex) {
-        _ws.add(JSON.encode([
+        _ws.add(jsonEncode([
           WampCode.error,
           WampCode.invocation,
           code,
@@ -452,7 +452,7 @@ class WampClient {
       throw new Exception('cant send Hello after session established.');
     }
 
-    _ws.add(JSON.encode([
+    _ws.add(jsonEncode([
       WampCode.hello,
       realm,
       {'roles': defaultClientRoles},
@@ -466,7 +466,7 @@ class WampClient {
     }
 
     void send_goodbye(String reason, Symbol next) {
-      _ws.add(JSON.encode([
+      _ws.add(jsonEncode([
         WampCode.goodbye,
         details,
         reason,
@@ -486,7 +486,7 @@ class WampClient {
       throw new Exception('cant send Goodbye before session established.');
     }
 
-    _ws.add(JSON.encode([
+    _ws.add(jsonEncode([
       WampCode.abort,
       details,
       'abort',
@@ -598,7 +598,7 @@ class WampClient {
   int _goFlight(StreamController<dynamic> cntl, dynamic data(int code)) {
     final code = _flightCode(cntl);
     try {
-      _ws.add(JSON.encode(data(code)));
+      _ws.add(jsonEncode(data(code)));
       return code;
     } catch (_) {
       _inflights.remove(code);
