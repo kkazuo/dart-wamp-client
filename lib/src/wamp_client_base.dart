@@ -93,6 +93,9 @@ class WampRegistration {
 /// onConnect handler type.
 typedef void WampOnConnect(WampClient client);
 
+/// WampOnDisconnect handler type.
+typedef void WampOnDisconnect(WampClient client);
+
 /// WAMP Client.
 ///
 ///     var wamp = new WampClient('realm1')
@@ -157,6 +160,7 @@ class WampClient {
   ///     await wamp.connect('ws://localhost:8080/ws');
   ///
   WampOnConnect onConnect = (_) {};
+  WampOnDisconnect onDisconnect = (_) {};
 
   /// connect to WAMP server at [url].
   ///
@@ -176,6 +180,11 @@ class WampClient {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future close() async {
+    await _ws.close();
+    _handle([WampCode.abort]);
   }
 
   void _handle(List<dynamic> msg) {
@@ -212,6 +221,7 @@ class WampClient {
           _sessionState = #closed;
           print('aborted $msg');
         }
+        onDisconnect(this);
         break;
 
       case WampCode.goodbye:
@@ -226,6 +236,7 @@ class WampClient {
         } else {
           throw new Exception('on: $_sessionState, msg: $msg');
         }
+        onDisconnect(this);
         break;
 
       case WampCode.subscribed:
