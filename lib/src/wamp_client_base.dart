@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:crypto/crypto.dart';
 
 class WampCode {
   static const int hello = 1;
@@ -28,6 +29,21 @@ class WampCode {
   static const int invocation = 68;
   static const int interrupt = 69;
   static const int yield = 70;
+}
+
+/// WAMP Authentication
+class WampAuth {
+  WampAuth({required this.id, required this.methods});
+
+  /// WAMP Challenge-Response ("WAMP-CRA") Auth
+  WampAuth.wampcra({required this.id, required String secret}) {
+    methods = ["wampcra"];
+    this.secret = utf8.encode(secret);
+  }
+
+  late final List<String> methods;
+  final String id;
+  late final List<int> secret;
 }
 
 /// WAMP RPC arguments.
@@ -112,6 +128,7 @@ typedef void WampOnDisconnect(WampClient client);
 class WampClient {
   /// realm.
   final String realm;
+  final WampAuth? auth;
   WebSocket? _ws;
   var _sessionState = #closed;
   var _sessionId = 0;
@@ -122,7 +139,7 @@ class WampClient {
   final Map<int, WampProcedure> _registrations;
 
   /// create WAMP client with [realm].
-  WampClient(this.realm)
+  WampClient(this.realm, {this.auth})
       : _random = new Random.secure(),
         _inflights = <int, StreamController<dynamic>>{},
         _subscriptions = {},
@@ -409,6 +426,23 @@ class WampClient {
         break;
 
       case WampCode.challenge:
+        final method = msg[1] as String;
+        if (auth != null && auth!.methods.contains(method)) {
+          final args = msg[2] as Map<String, dynamic>;
+          final challenge = args['challenge'] as String;
+          final secret = auth!.secret;
+          final digest = Hmac(sha256, secret).convert(utf8.encode(challenge));
+          final response = base64.encode(digest.bytes);
+          _ws?.add(jsonEncode(<dynamic>[
+            WampCode.authenticate,
+            response,
+            <String, dynamic>{},
+          ]));
+        } else {
+          print('unexpected auth method: $msg');
+        }
+        break;
+
       case WampCode.authenticate:
       case WampCode.cancel:
       case WampCode.interrupt:
@@ -467,7 +501,11 @@ class WampClient {
     _ws?.add(jsonEncode([
       WampCode.hello,
       realm,
-      {'roles': defaultClientRoles},
+      {
+        'roles': defaultClientRoles,
+        if (auth != null) 'authmethods': auth!.methods,
+        if (auth != null) 'authid': auth!.id,
+      },
     ]));
     _sessionState = #establishing;
   }

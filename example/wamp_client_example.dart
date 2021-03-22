@@ -2,7 +2,11 @@ import 'dart:async';
 import 'package:wamp_client/wamp_client.dart';
 
 Future main() async {
-  var wamp = new WampClient('realm1')
+  var wamp = new WampClient('realm1',
+      auth: WampAuth.wampcra(
+        id: 'client1',
+        secret: 'secret123',
+      ))
     ..onConnect = (c) {
       c.subscribe('topic').then((s) async {
         await for (final ev in s) {

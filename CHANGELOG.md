@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- Add: supports WAMP-CRA authentication.
+
 ## 0.3.1
 
 - Fix: type error of ```unregister``` method.
