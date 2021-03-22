@@ -20,21 +20,22 @@ Future main() async {
 
       c.register(pname, (a) {
         print('proc arg: $a');
-        throw new WampArgs(<dynamic>[100], <String, dynamic>{'test': true});
+        //throw new WampArgs(<dynamic>[100], <String, dynamic>{'test': true});
         return a;
       }).then((WampRegistration regid) async {
         print('register ok $regid');
+
+        await c.call(pname, <dynamic>[2, 3],
+            <String, dynamic>{'hello': 'world!'}).then((r) {
+          print('result ${r.args} ${r.params}');
+        }).catchError((dynamic e) {
+          print('call err $e');
+        });
+
         await c.unregister(regid);
         print('unregister ok');
       }).catchError((dynamic e) {
         print('register error $e');
-      });
-
-      c.call(pname, <dynamic>[2, 3], <String, dynamic>{'hello': 'world!'}).then(
-          (r) {
-        print('result ${r.args} ${r.params}');
-      }).catchError((dynamic e) {
-        print('err $e');
       });
     };
   await wamp.connect('ws://localhost:8080/ws');
