@@ -526,7 +526,7 @@ class WampClient {
   ///
   ///     wamp.unregister(your_rpc_id);
   Future<Null> unregister(WampRegistration reg) {
-    final cntl = new StreamController<int>();
+    final cntl = new StreamController<Null>();
     _goFlight(cntl, (code) => [WampCode.unregister, code, reg.id]);
     return cntl.stream.last.then((dynamic _) {
       _registrations.remove(reg.id);
