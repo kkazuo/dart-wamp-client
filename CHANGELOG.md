@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Fix: type error of ```unregister``` method.
+
 ## 0.3.0
 
 - Null-safety
