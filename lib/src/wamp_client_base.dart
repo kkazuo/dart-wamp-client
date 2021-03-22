@@ -33,13 +33,19 @@ class WampCode {
 
 /// WAMP Authentication
 class WampAuth {
-  WampAuth({required this.id, required this.methods});
+  WampAuth({
+    required this.id,
+    required this.methods,
+    this.secret = const <int>[],
+  });
 
   /// WAMP Challenge-Response ("WAMP-CRA") Auth
-  WampAuth.wampcra({required this.id, required String secret}) {
-    methods = ["wampcra"];
-    this.secret = utf8.encode(secret);
-  }
+  WampAuth.wampcra({required String id, required String secret})
+      : this(
+          methods: ["wampcra"],
+          id: id,
+          secret: utf8.encode(secret),
+        );
 
   late final List<String> methods;
   final String id;
