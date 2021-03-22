@@ -112,7 +112,7 @@ typedef void WampOnDisconnect(WampClient client);
 class WampClient {
   /// realm.
   final String realm;
-  WebSocket _ws;
+  WebSocket? _ws;
   var _sessionState = #closed;
   var _sessionId = 0;
   var _sessionDetails = const <String, dynamic>{};
@@ -171,11 +171,12 @@ class WampClient {
     _hello();
 
     try {
-      await for (final m in _ws) {
-        final s = m is String ? m : new Utf8Decoder().convert(m as List<int>);
-        final msg = jsonDecode(s) as List<dynamic>;
-        _handle(msg);
-      }
+      if (_ws != null)
+        await for (final m in _ws!) {
+          final s = m is String ? m : new Utf8Decoder().convert(m as List<int>);
+          final msg = jsonDecode(s) as List<dynamic>;
+          _handle(msg);
+        }
       print('disconnect');
     } catch (e) {
       print(e);
@@ -183,8 +184,8 @@ class WampClient {
   }
 
   Future close() async {
-    await _ws.close();
-    _handle([WampCode.abort]);
+    await _ws?.close();
+    _handle(<dynamic>[WampCode.abort]);
   }
 
   void _handle(List<dynamic> msg) {
@@ -426,7 +427,7 @@ class WampClient {
     if (proc != null) {
       try {
         final result = proc(args);
-        _ws.add(jsonEncode([
+        _ws?.add(jsonEncode([
           WampCode.yield,
           code,
           <String, dynamic>{},
@@ -435,7 +436,7 @@ class WampClient {
         ]));
       } on WampArgs catch (ex) {
         print('ex=$ex');
-        _ws.add(jsonEncode([
+        _ws?.add(jsonEncode([
           WampCode.error,
           WampCode.invocation,
           code,
@@ -445,7 +446,7 @@ class WampClient {
           ex.params
         ]));
       } catch (ex) {
-        _ws.add(jsonEncode([
+        _ws?.add(jsonEncode([
           WampCode.error,
           WampCode.invocation,
           code,
@@ -463,7 +464,7 @@ class WampClient {
       throw new Exception('cant send Hello after session established.');
     }
 
-    _ws.add(jsonEncode([
+    _ws?.add(jsonEncode([
       WampCode.hello,
       realm,
       {'roles': defaultClientRoles},
@@ -477,7 +478,7 @@ class WampClient {
     }
 
     void send_goodbye(String reason, Symbol next) {
-      _ws.add(jsonEncode([
+      _ws?.add(jsonEncode([
         WampCode.goodbye,
         details,
         reason,
@@ -497,7 +498,7 @@ class WampClient {
       throw new Exception('cant send Goodbye before session established.');
     }
 
-    _ws.add(jsonEncode([
+    _ws?.add(jsonEncode([
       WampCode.abort,
       details,
       'abort',
@@ -609,7 +610,7 @@ class WampClient {
   int _goFlight(StreamController<dynamic> cntl, dynamic data(int code)) {
     final code = _flightCode(cntl);
     try {
-      _ws.add(jsonEncode(data(code)));
+      _ws?.add(jsonEncode(data(code)));
       return code;
     } catch (_) {
       _inflights.remove(code);
