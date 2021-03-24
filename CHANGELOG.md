@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0
+
+- Add: supports WAMP Ticket authentication.
+
 ## 0.4.0
 
 - Add: supports WAMP-CRA authentication.

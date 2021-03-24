@@ -36,7 +36,7 @@ class WampAuth {
   WampAuth({
     required this.id,
     required this.methods,
-    this.secret = const <int>[],
+    this.secret = '',
   });
 
   /// WAMP Challenge-Response ("WAMP-CRA") Auth
@@ -44,12 +44,36 @@ class WampAuth {
       : this(
           methods: ["wampcra"],
           id: id,
-          secret: utf8.encode(secret),
+          secret: secret,
+        );
+
+  /// Ticket Auth
+  WampAuth.ticket({required String id, required String secret})
+      : this(
+          methods: ["ticket"],
+          id: id,
+          secret: secret,
         );
 
   late final List<String> methods;
   final String id;
-  late final List<int> secret;
+  final String secret;
+
+  String response(String method, Map<String, dynamic> request) {
+    switch (method) {
+      case 'wampcra':
+        final challenge = request['challenge'] as String;
+        final secret = utf8.encode(this.secret);
+        final digest = Hmac(sha256, secret).convert(utf8.encode(challenge));
+        return base64.encode(digest.bytes);
+
+      case 'ticket':
+        return secret;
+
+      default:
+        return '';
+    }
+  }
 }
 
 /// WAMP RPC arguments.
@@ -434,11 +458,9 @@ class WampClient {
       case WampCode.challenge:
         final method = msg[1] as String;
         if (auth != null && auth!.methods.contains(method)) {
-          final args = msg[2] as Map<String, dynamic>;
-          final challenge = args['challenge'] as String;
-          final secret = auth!.secret;
-          final digest = Hmac(sha256, secret).convert(utf8.encode(challenge));
-          final response = base64.encode(digest.bytes);
+          final request = msg[2] as Map<String, dynamic>?;
+          final response =
+              auth!.response(method, request ?? <String, dynamic>{});
           _ws?.add(jsonEncode(<dynamic>[
             WampCode.authenticate,
             response,
