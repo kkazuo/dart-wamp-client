@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+
+- Supports Dart 3
+
 ## 0.5.0
 
 - Add: supports WAMP Ticket authentication.
