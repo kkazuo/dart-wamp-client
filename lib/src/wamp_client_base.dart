@@ -474,7 +474,6 @@ class WampClient {
       case WampCode.authenticate:
       case WampCode.cancel:
       case WampCode.interrupt:
-
       default:
         print('unexpected: $msg');
         break;
